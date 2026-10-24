@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="__CSRF__"><title>Folio · Reglamentos locales</title>
+  <link rel="icon" href="data:,"><link rel="stylesheet" href="/styles.css"><script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Folio, inicio"><span class="brand-mark">f.</span><span>folio<span class="brand-sub">REGLAMENTOS LOCALES</span></span></a>
+    <div class="workspace-label">ESPACIO PERSONAL <span>01</span></div>
+    <div class="nav-active"><span>▤</span> Biblioteca y consultas <span class="nav-dot"></span></div>
+    <div class="library-heading"><h2>Tu biblioteca</h2><span id="doc-count">0</span></div>
+    <button class="upload-button" id="upload">＋ Agregar reglamentos</button>
+    <input id="files" type="file" accept=".pdf,.docx,.txt,.md" multiple hidden>
+    <button class="upload-button folder-button" id="upload-folder">▤ Agregar carpeta</button>
+    <input id="folder-files" type="file" webkitdirectory multiple hidden>
+    <p class="upload-hint">PDF, Word y texto · hasta 15 MB por archivo</p>
+    <section id="import-panel" class="import-panel" aria-label="Importación de reglamentos" hidden>
+      <p id="import-title" class="import-title"></p>
+      <p id="import-status" role="status" aria-live="polite"></p>
+      <progress id="import-progress" aria-label="Archivos revisados" max="1" value="0"></progress>
+      <button id="stop-import" class="text-button">Detener después de este archivo</button>
+      <details id="import-details" hidden><summary>Ver archivos omitidos o con advertencias</summary><ul id="import-issues"></ul></details>
+    </section>
+    <div id="documents" class="document-list"></div>
+    <div class="sidebar-footer"><span class="status-dot"></span><div><strong>Procesamiento en este equipo</strong><p>Sin servicios de IA en la nube</p></div></div>
+  </aside>
+  <main>
+    <header class="topbar"><span>Biblioteca <span class="slash">/</span> <strong>Asistente de consulta</strong></span><button id="privacy" class="privacy-pill"><span class="status-dot"></span> Privacidad local ↗</button></header>
+    <section class="content">
+      <div class="page-heading"><div><p class="eyebrow">DE LA PREGUNTA A LA FUENTE</p><h1>Respuestas con respaldo.</h1><p class="subtitle">Consulta tus reglamentos y encuentra el pasaje que necesitas.</p></div><button id="clear" class="quiet-button">↻ Nueva consulta</button></div>
+      <div class="workspace-grid">
+        <section class="chat-card" aria-label="Chat de reglamentos">
+          <div class="card-toolbar"><span><span class="small-spark">✳</span> Asistente de reglamentos</span><span class="local-badge" id="mode-label">BÚSQUEDA LOCAL</span></div>
+          <div class="chat-scroll" id="conversation" role="log" aria-live="polite">
+            <div id="welcome" class="welcome"><div class="welcome-icon">§</div><p class="eyebrow">TU BIBLIOTECA, A UN MENSAJE</p><h2>¿Qué necesitas consultar?</h2><p>Agrega tus reglamentos para encontrar respuestas<br class="desktop-break"> acompañadas de su fuente original.</p><div class="welcome-steps"><span><b>1</b> Carga un documento</span><span><b>2</b> Haz una pregunta</span><span><b>3</b> Revisa la fuente</span></div></div>
+          </div>
+          <form id="ask-form" class="composer">
+            <div class="composer-controls"><label for="scope">Consultar en</label><select id="scope"><option value="">Toda la biblioteca</option></select><label class="mode-switch"><input type="checkbox" id="ai"> IA local</label></div>
+            <div id="model-row" class="model-row" hidden><label for="model">Modelo de Ollama</label><select id="model"></select><span>Borrador sujeto a revisión</span></div>
+            <label class="sr-only" for="question">Tu pregunta</label><textarea id="question" maxlength="8000" rows="3" placeholder="Escribe tu pregunta o pega el texto de un correo…"></textarea>
+            <div class="composer-bottom"><button type="button" id="capture" class="capture-button">▣ Capturar pantalla</button><button type="submit" id="send" class="primary-button">Consultar <span>↗</span></button></div>
+            <p class="composer-note">Cada consulta busca por separado. El historial se borra al recargar.</p>
+          </form>
+        </section>
+        <aside class="context-column">
+          <section class="source-guide"><div class="guide-symbol">↗</div><p class="eyebrow">SIEMPRE CON REFERENCIAS</p><h2>La fuente forma parte<br>de la respuesta.</h2><p>Cada resultado incluye el pasaje encontrado, su ubicación y un enlace al documento original.</p><div class="reference-example"><span class="file-icon">DOC</span><div><strong>Tu reglamento</strong><span>Página o párrafo · Pasaje original</span></div><span>↗</span></div><p class="fine-print">En PDF: número de página.<br>En Word y texto: número de párrafo.</p></section>
+          <section class="capture-guide"><span class="mini-icon">▣</span><h3>De un correo a una consulta</h3><p>Captura la ventana que elijas o carga una imagen. Revisa el texto detectado antes de consultar.</p><button id="image-upload" class="text-button">Cargar una captura PNG →</button><input id="image-file" type="file" accept="image/png" hidden></section>
+          <p class="context-note">Verifica la vigencia de los documentos y las excepciones de cada norma. El buscador no decide qué reglamento prevalece.</p>
+        </aside>
+      </div>
+      <footer class="page-footer"><span>FOLIO <span class="footer-divider">/</span> Un espacio para tus reglamentos</span><span>Almacenamiento local · Sin telemetría</span></footer>
+    </section>
+  </main>
+  <div id="status" class="toast" role="status" hidden></div>
+  <dialog id="desktop-capture-dialog"><div class="dialog-heading"><h2>Elige qué capturar</h2><button id="cancel-desktop-capture" class="icon-button" aria-label="Cancelar captura">×</button></div><p class="fine-print">Se tomará una sola imagen de la ventana o pantalla que selecciones. Podrás revisar su texto antes de consultar.</p><label for="desktop-source">Ventana o pantalla</label><select id="desktop-source"></select><p><button id="take-desktop-capture" class="primary-button">Capturar selección</button></p></dialog>
+  <dialog id="capture-dialog"><div class="dialog-heading"><div><p class="eyebrow">LECTURA LOCAL</p><h2>Revisa tu captura</h2></div><button id="close-capture" class="icon-button" aria-label="Cerrar captura">×</button></div><img id="capture-preview" alt="Vista previa de la captura elegida"><p id="ocr-state" role="status">Leyendo texto en este equipo…</p><label for="ocr-text">Texto para tu consulta</label><textarea id="ocr-text" rows="7" maxlength="8000" placeholder="El texto detectado aparecerá aquí. Puedes corregirlo."></textarea><p class="fine-print">Elimina los datos personales que no sean necesarios. La imagen temporal se borra después de la lectura.</p><button id="use-ocr" class="primary-button">Usar este texto</button></dialog>
+  <dialog id="privacy-dialog"><div class="dialog-heading"><h2>Cómo se cuida la información</h2><button id="close-privacy" class="icon-button" aria-label="Cerrar privacidad">×</button></div><ul class="privacy-list"><li>La app atiende únicamente en <strong>127.0.0.1</strong>, dentro de este equipo.</li><li id="storage-description">Los originales y el índice se guardan en data/, junto al código. Puedes eliminarlos desde la biblioteca.</li><li>La búsqueda y el OCR se realizan localmente. No se conectan cuentas de correo.</li><li>La IA requiere verificar reglas activas del Firewall de Windows que bloqueen las conexiones de Ollama fuera de este equipo. Si no se pueden verificar, Folio no activa la IA. Usa además un proceso propio con funciones de nube desactivadas y modelos descargados.</li><li>Las capturas se procesan temporalmente. El chat queda en memoria y desaparece al recargar.</li><li>La app no cifra el disco. Quien tenga acceso a tu cuenta o a sus copias de seguridad podría leer los archivos. Usa una carpeta fuera de sincronización en nube y la protección de disco de tu equipo.</li></ul><p class="fine-print">Las citas identifican fuentes reales; no garantizan que una interpretación de IA sea correcta. Los PDF escaneados requieren una capa OCR previa.</p></dialog>
+</body>
+</html>
