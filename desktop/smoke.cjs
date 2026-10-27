@@ -9,7 +9,7 @@ function pdf() {
   result += `xref\n0 6\n0000000000 65535 f \n${offsets.map(n => String(n).padStart(10,'0') + ' 00000 n \n').join('')}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
   return Buffer.from(result).toString('base64');
 }
-exports.runSmokeTest = async ({ mainWindow, localRoot }) => {
+exports.runSmokeTest = async ({ mainWindow, localRoot, pet }) => {
   const result = await mainWindow.webContents.executeJavaScript(`(async () => {
     const assert = (condition, message) => { if (!condition) throw new Error(message); };
     assert(typeof process === 'undefined' && typeof require === 'undefined', 'Node expuesto en interfaz');
@@ -34,6 +34,8 @@ exports.runSmokeTest = async ({ mainWindow, localRoot }) => {
     await call('/api/documents/'+loaded.document.id,undefined,'DELETE');
     return {ok:true,rendererIsolated:true,bundledExtraction:true,pdfCitation:true,originalLink:true,remoteBlocked:true,documentsCleaned:true};
   })()`);
+  Object.assign(result, await require('./region-smoke.cjs').run(mainWindow));
+  Object.assign(result, await require('./pet-smoke.cjs').run(mainWindow, pet, localRoot));
   fs.writeFileSync(path.join(localRoot, 'smoke-result.json'), JSON.stringify(result, null, 2));
   await new Promise(resolve => setTimeout(resolve, 1500));
   try {

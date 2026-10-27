@@ -27,7 +27,7 @@
     <div class="sidebar-footer"><span class="status-dot"></span><div><strong>Procesamiento en este equipo</strong><p>Sin servicios de IA en la nube</p></div></div>
   </aside>
   <main>
-    <header class="topbar"><span>Biblioteca <span class="slash">/</span> <strong>Asistente de consulta</strong></span><button id="privacy" class="privacy-pill"><span class="status-dot"></span> Privacidad local ↗</button></header>
+    <header class="topbar"><span>Biblioteca <span class="slash">/</span> <strong>Asistente de consulta</strong></span><div class="topbar-actions"><button id="minimize-pet" class="quiet-button" title="Minimizar Folio y mostrar la mascota (Ctrl+Mayús+M)" hidden>Minimizar a mascota</button><button id="privacy" class="privacy-pill"><span class="status-dot"></span> Privacidad local ↗</button></div></header>
     <section class="content">
       <div class="page-heading"><div><p class="eyebrow">DE LA PREGUNTA A LA FUENTE</p><h1>Respuestas con respaldo.</h1><p class="subtitle">Consulta tus reglamentos y encuentra el pasaje que necesitas.</p></div><button id="clear" class="quiet-button">↻ Nueva consulta</button></div>
       <div class="workspace-grid">
@@ -40,13 +40,13 @@
             <div class="composer-controls"><label for="scope">Consultar en</label><select id="scope"><option value="">Toda la biblioteca</option></select><label class="mode-switch"><input type="checkbox" id="ai"> IA local</label></div>
             <div id="model-row" class="model-row" hidden><label for="model">Modelo de Ollama</label><select id="model"></select><span>Borrador sujeto a revisión</span></div>
             <label class="sr-only" for="question">Tu pregunta</label><textarea id="question" maxlength="8000" rows="3" placeholder="Escribe tu pregunta o pega el texto de un correo…"></textarea>
-            <div class="composer-bottom"><button type="button" id="capture" class="capture-button">▣ Capturar pantalla</button><button type="submit" id="send" class="primary-button">Consultar <span>↗</span></button></div>
+            <div class="composer-bottom"><div class="capture-actions"><button type="button" id="capture" class="capture-button">▣ Capturar pantalla</button><button type="button" id="capture-window" class="capture-button" title="Capturar una ventana o pantalla completa" hidden>Ventana completa</button></div><button type="submit" id="send" class="primary-button">Consultar <span>↗</span></button></div>
             <p class="composer-note">Cada consulta busca por separado. El historial se borra al recargar.</p>
           </form>
         </section>
         <aside class="context-column">
           <section class="source-guide"><div class="guide-symbol">↗</div><p class="eyebrow">SIEMPRE CON REFERENCIAS</p><h2>La fuente forma parte<br>de la respuesta.</h2><p>Cada resultado incluye el pasaje encontrado, su ubicación y un enlace al documento original.</p><div class="reference-example"><span class="file-icon">DOC</span><div><strong>Tu reglamento</strong><span>Página o párrafo · Pasaje original</span></div><span>↗</span></div><p class="fine-print">En PDF: número de página.<br>En Word y texto: número de párrafo.</p></section>
-          <section class="capture-guide"><span class="mini-icon">▣</span><h3>De un correo a una consulta</h3><p>Captura la ventana que elijas o carga una imagen. Revisa el texto detectado antes de consultar.</p><button id="image-upload" class="text-button">Cargar una captura PNG →</button><input id="image-file" type="file" accept="image/png" hidden></section>
+          <section class="capture-guide"><span class="mini-icon">▣</span><h3>De un correo a una consulta</h3><p>En escritorio, selecciona una zona de texto con el mouse. También puedes capturar una ventana o cargar una imagen. Revisa el texto antes de consultar.</p><button id="image-upload" class="text-button">Cargar una captura PNG →</button><input id="image-file" type="file" accept="image/png" hidden></section>
           <p class="context-note">Verifica la vigencia de los documentos y las excepciones de cada norma. El buscador no decide qué reglamento prevalece.</p>
         </aside>
       </div>

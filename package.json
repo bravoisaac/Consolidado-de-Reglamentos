@@ -1,6 +1,6 @@
 {
   "name": "reglamentos-locales",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Consulta privada de reglamentos con fuentes, OCR y Ollama local sin Internet",
   "author": "Folio",
@@ -28,9 +28,31 @@
     "productName": "Folio",
     "asar": false,
     "npmRebuild": false,
-    "directories": { "output": "dist" },
-    "files": ["desktop/**", "lib/**", "public/**", "scripts/ocr.ps1", "scripts/ollama-firewall.ps1", "server.mjs", "package.json", "README.md", "MANUAL-IA.md"],
-    "win": { "target": ["portable", "zip"], "icon": "desktop/icon.ico", "signExecutable": false, "artifactName": "Folio-${version}-win-${arch}.${ext}" },
-    "portable": { "artifactName": "Folio-${version}-portable-${arch}.exe" }
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "desktop/**",
+      "lib/**",
+      "public/**",
+      "scripts/ocr.ps1",
+      "scripts/ollama-firewall.ps1",
+      "server.mjs",
+      "package.json",
+      "README.md",
+      "MANUAL-IA.md"
+    ],
+    "win": {
+      "target": [
+        "portable",
+        "zip"
+      ],
+      "icon": "desktop/icon.ico",
+      "signExecutable": false,
+      "artifactName": "Folio-${version}-win-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Folio-${version}-portable-${arch}.exe"
+    }
   }
 }

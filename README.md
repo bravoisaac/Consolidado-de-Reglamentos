@@ -4,9 +4,9 @@ Aplicación para Windows que busca en reglamentos privados y devuelve pasajes, u
 
 ## Descargar la app de escritorio
 
-[![Descargar Folio para Windows x64](desktop/descargar.svg)](dist/Folio-1.0.0-portable-x64.exe)
+[![Descargar Folio para Windows x64](desktop/descargar.svg)](dist/Folio-1.1.0-portable-x64.exe)
 
-**[Descargar ZIP alternativo](dist/Folio-1.0.0-win-x64.zip)** · **[Verificar SHA-256](dist/SHA256SUMS.txt)** · **[Manual para instalar con una IA](MANUAL-IA.md)**
+**[Descargar ZIP alternativo](dist/Folio-1.1.0-win-x64.zip)** · **[Verificar SHA-256](dist/SHA256SUMS.txt)** · **[Manual para instalar con una IA](MANUAL-IA.md)**
 
 El archivo portable abre una ventana propia de Folio e incluye el motor de ejecución: no requiere instalar Node.js. Windows 10/11 x64. La búsqueda funciona sin Ollama; la IA opcional requiere Ollama, un modelo local y el firewall verificado. No incluye reglamentos ni modelos. Los paquetes están disponibles en esta carpeta; no se han publicado en Internet.
 
@@ -34,7 +34,9 @@ También puedes ejecutar `npm start` y `npm test` desde esta carpeta.
 - TXT/MD: UTF-8, párrafos separados por líneas en blanco.
 - Cargas de hasta 15 MB. No admite DOC antiguo ni PDF cifrado sin acceso al texto.
 - Un PDF escaneado necesita una capa OCR previa. La app avisa si detecta páginas con poco texto; no interpreta imágenes ni diagramas del reglamento.
-- **Capturar pantalla** abre el selector del navegador. Elige la ventana del correo o de la pregunta. La captura se detiene al tomar un único fotograma.
+- **Seleccionar zona**, en la app de escritorio, oculta Folio y permite arrastrar un rectángulo sobre el texto, como en LeerTexto. Al soltar el mouse vuelve la app con el recorte y el texto reconocido. **Esc** o clic derecho cancelan. Selecciona dentro de un solo monitor; se admiten sus distintas escalas de pantalla. Una zona menor de 8 píxeles lógicos no se captura.
+- **Ventana completa** conserva el selector de ventanas y pantallas. En el navegador, **Capturar pantalla** usa el selector del navegador y toma un único fotograma.
+- El selector de zona procesa solo el recorte con OCR de Windows. La imagen completa de pantalla se usa transitoriamente en memoria para recortar y no se guarda. Revisa la vista previa y el texto antes de pulsar **Usar texto**; no se envía automáticamente una consulta a la IA.
 - Puedes cargar una captura PNG. Windows reconoce el texto localmente; se intenta español y luego el idioma disponible del usuario. Revisa el texto antes de usarlo. También puedes pegar texto manualmente.
 - Se eliminan las capturas temporales después del OCR; tras un cierre inesperado, se limpian las pendientes al volver a iniciar. Borrar archivos no equivale a borrado forense del disco.
 - Ctrl+Enter envía la consulta. Cada pregunta busca de forma independiente; no usa preguntas anteriores como contexto.
@@ -83,11 +85,11 @@ Referencia: [reglas de bloqueo por programa en Windows Firewall](https://learn.m
 
 ## Validación realizada
 
-- Diez pruebas automatizadas: recuperación, referencias, fragmentación, PDF, Word, rechazo de archivos inválidos y flujo HTTP (acceso, origen, Host, CSRF, importación, duplicados, persistencia, descarga y eliminación).
+- Catorce pruebas automatizadas: recuperación, referencias, fragmentación, PDF, Word, rechazo de archivos inválidos, flujo HTTP y geometría del recorte con distintas escalas y coordenadas de monitor.
 - OCR de Windows probado en español con una imagen sintética; revisión y uso del texto comprobados en Edge. Carpeta temporal vacía tras procesar.
 - Borrador real generado con `qwen3.5:4b-q4_K_M`, evidencia ficticia y cita `[1]`, mediante el proceso privado de Ollama.
 - `npm audit --omit=dev`: cero vulnerabilidades conocidas reportadas al 24 de octubre de 2026; no constituye una auditoría integral de seguridad.
-- La selección de una ventana para captura requiere interacción y permiso del usuario en su navegador. El procesamiento posterior se comprobó con carga PNG.
+- Prueba de escritorio con imagen ficticia: arrastre real en el selector, recorte a escala 200%, OCR, revisión del texto, cancelación con Esc y rechazo de mensajes desde una ventana no autorizada. No utiliza reglamentos reales. La captura del escritorio físico no quedó validada con el panel de prueba; la prueba automatizada suministra una imagen sintética. Pendiente comprobar manualmente varias pantallas físicas.
 
 ## Referencias técnicas
 

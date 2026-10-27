@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Folio · Mascota</title><link rel="stylesheet" href="pet.css"><script src="pet.js" defer></script>
+</head>
+<body>
+  <section id="panel" hidden aria-label="Acciones de Folio">
+    <div class="panel-heading"><strong>Tu compañero Folio</strong><button id="collapse" aria-label="Contraer menú">−</button></div>
+    <p id="state" role="status">Todo se procesa en tu equipo.</p>
+    <button class="capture" data-action="capture"><span>▣</span> Capturar una zona</button>
+    <div class="shortcuts"><button data-action="question">Consultar</button><button data-action="library">Biblioteca</button></div>
+    <div class="panel-footer"><button data-action="open">Abrir Folio ↗</button><button data-action="quit">Salir</button></div>
+  </section>
+  <div class="companion">
+    <div class="drag-handle" title="Arrastra para mover la mascota">⠿ <span>FOLIO</span></div>
+    <button id="pet" aria-label="Abrir acciones de la mascota Folio" aria-expanded="false" aria-controls="panel">
+      <span class="book" aria-hidden="true"><span class="bookmark"></span><span class="face"><i></i><i></i><b></b></span><span class="cheek left"></span><span class="cheek right"></span><span class="feet"></span></span>
+    </button>
+    <button id="quick-capture" data-action="capture" aria-label="Capturar una zona de pantalla">▣ Capturar</button>
+  </div>
+</body>
+</html>

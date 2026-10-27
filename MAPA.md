@@ -1,5 +1,16 @@
 # Mapa dinámico
 
+## Mascota de escritorio (en desarrollo)
+- Objetivo: minimizar Folio a una mascota flotante con captura, consultas y biblioteca.
+- Framework/entrada: Electron; desktop/main.cjs y preload.cjs.
+- Pantallas conectadas: nueva ventana local desktop/pet.*, public/app.js e index.html; estilos propios con la paleta verde de Folio.
+- Servicios y estado: reutilizar selección de zona → OCR → revisión; eventos IPC limitados, estado ocupado y minimizar/restaurar. Sin API de red nueva.
+- Patrones: ventanas aisladas, contenido local permitido explícitamente, sin Node en renderers; conservar conversación al minimizar.
+- Candidatos revisados: main/preload, region-capture/region-smoke/smoke, app/index/styles, package y manual.
+- Archivos a modificar: los anteriores necesarios para conectar mascota, pruebas funcionales y documentación; añadir módulo/ventana de mascota.
+- No tocar: bibliotecas reales, reglas de firewall, motor Ollama y proyecto LeerTexto.
+- Riesgo: medio (ciclo de ventanas, permisos IPC y visibilidad durante captura). Pruebas con biblioteca e imágenes ficticias.
+
 - Objetivo: consultar reglamentos privados con pasajes, ubicación y enlaces locales; extraer preguntas de capturas.
 - Framework: Node.js con HTTP nativo, HTML/CSS/JavaScript, OCR de Windows y Ollama opcional.
 - Entrada: server.mjs; iniciar.cmd para Windows.
@@ -39,3 +50,13 @@
 - Riesgo: medio. Nuevas dependencias de empaquetado autorizadas por la solicitud de app de escritorio. No migrar ni borrar la biblioteca actual.
 - Validación: diez pruebas existentes aprobadas; paquete final ejecutado sin Node en PATH con resultado ok:true (aislamiento, extracción PDF, cita/página, enlace, bloqueo de peticiones externas, limpieza, cierre y captura visual). Diagnóstico del manual confirmó dependencias, firewall e idiomas OCR. npm audit y npm audit --omit=dev sin vulnerabilidades conocidas. Paquete revisado mediante lista explícita; hashes calculados por scripts/release.mjs al terminar la compresión.
 - Entrega: dist/Folio-1.0.0-portable-x64.exe y dist/Folio-1.0.0-win-x64.zip, con SHA256SUMS.txt. El portable definitivo también pasó la prueba independiente sin Node en PATH y cerró correctamente. Cinco enlaces locales del README verificados. Paquetes sin firma de editor y sin publicación externa.
+
+## Selección de una zona de pantalla
+- Referencia leída: leertexto/main.js y renderer/selection.{html,css,js}; interacción de rectángulo por arrastre y Escape. No modificar ese proyecto.
+- Objetivo: ocultar Folio, seleccionar una zona y procesar solamente el recorte con el OCR local existente.
+- Archivos: desktop/region-* (selector aislado y geometría), desktop/main.cjs/preload.cjs, public/app.js/index.html/styles.css y documentación.
+- Flujo: botón Seleccionar zona → una capa por monitor → arrastre dentro de un monitor → cerrar capas → captura en memoria del monitor identificado → recorte con relación píxeles/DIP → vista previa y OCR → revisión del usuario.
+- Seguridad: IPC restringido a ventanas autorizadas; selector sin red; no persistir capturas completas; no capturar hasta confirmar selección; cancelar con Escape, cierre o tiempo límite. Conservar bloqueo de Ollama.
+- Validación: 14 pruebas automatizadas aprobadas. Paquete 1.1.0 descomprimido probado sin Node en PATH: selección, recorte a 200%, OCR, uso del texto, cancelación con Esc, IPC autorizado y las comprobaciones previas, todo con datos ficticios. La prueba física no mostró el panel esperado y se descartó el recorte; queda pendiente comprobar manualmente varias pantallas físicas. Cinco reglas de firewall verificadas nuevamente en Windows.
+- Riesgo: medio por DPI y varios monitores. El rectángulo se limita al monitor donde comienza el arrastre.
+- Entrega: portable y ZIP 1.1.0 generados; portable final probado sin Node en PATH con todas las comprobaciones positivas y cierre correcto. Enlaces del README y hashes comprobados. SHA-256 portable: 87fa8b6ba05506e0a45683ab037d4adae5ed04337c360b45486ffa0c069b3f72. ZIP: 5bb7366813783ea78aed9ce1b5f2272728e9f7258ecf562605572544699a6a2d. Sin publicación externa.

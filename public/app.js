@@ -1,6 +1,7 @@
 const $ = selector => document.querySelector(selector);
 const csrf = $('meta[name="csrf-token"]').content;
 if (window.folioDesktop) $('#storage-description').textContent = 'Los originales y el índice se guardan en %LOCALAPPDATA%\\Folio\\data. Abre esa carpeta desde el menú Folio. Puedes eliminar documentos desde la biblioteca.';
+if (window.folioDesktop?.captureRegion) { $('#capture').textContent = '▣ Seleccionar zona'; $('#capture-window').hidden = false; }
 let busy = false, toastTimer, previewUrl, stopImport = false;
 function notice(message) {
   $('#status').textContent = message; $('#status').hidden = false;
@@ -9,7 +10,8 @@ function notice(message) {
 function element(tag, className, text) { const el = document.createElement(tag); if (className) el.className = className; if (text !== undefined) el.textContent = text; return el; }
 function setBusy(value) {
   busy = value;
-  for (const selector of ['#send', '#capture', '#upload', '#upload-folder', '#ai', '#image-upload', '#clear', '.delete-document']) document.querySelectorAll(selector).forEach(el => { el.disabled = value; });
+  window.folioDesktop?.setBusy(value).catch(() => {});
+  for (const selector of ['#send', '#capture', '#capture-window', '#upload', '#upload-folder', '#ai', '#image-upload', '#clear', '.delete-document']) document.querySelectorAll(selector).forEach(el => { el.disabled = value; });
   $('#send').textContent = value ? 'Procesando…' : 'Consultar ↗';
 }
 async function api(route, data, method = 'POST') {
@@ -166,13 +168,14 @@ async function readCapture(blob) {
   finally { $('#use-ocr').disabled = false; setBusy(false); }
 }
 $('#capture').addEventListener('click', async () => {
-  if (window.folioDesktop) {
+  if (window.folioDesktop?.captureRegion) {
+    if (busy) return;
+    setBusy(true);
     try {
-      const sources = await window.folioDesktop.captureSources();
-      if (!sources.length) return notice('No hay ventanas disponibles para capturar. Puedes cargar una imagen PNG.');
-      $('#desktop-source').replaceChildren(...sources.map(source => new Option(source.name, source.id)));
-      $('#desktop-capture-dialog').showModal();
-    } catch { notice('No se pudieron listar las ventanas. Puedes cargar una captura PNG.'); }
+      const data = await window.folioDesktop.captureRegion();
+      if (data) await readCapture(new Blob([Uint8Array.from(atob(data), c => c.charCodeAt(0))], { type: 'image/png' }));
+    } catch { notice('No se pudo leer esa zona. Vuelve a seleccionar dentro de una sola pantalla o carga una captura PNG.'); }
+    finally { setBusy(false); }
     return;
   }
   let stream;
@@ -192,6 +195,15 @@ $('#capture').addEventListener('click', async () => {
   } catch (error) { if (error.name !== 'NotAllowedError') notice('No se pudo capturar la pantalla. Puedes cargar una captura PNG.'); }
   finally { stream?.getTracks().forEach(track => track.stop()); }
 });
+$('#capture-window').addEventListener('click', async () => {
+  if (busy || !window.folioDesktop) return;
+  try {
+    const sources = await window.folioDesktop.captureSources();
+    if (!sources.length) return notice('No hay ventanas disponibles. Puedes cargar una imagen PNG.');
+    $('#desktop-source').replaceChildren(...sources.map(source => new Option(source.name, source.id)));
+    $('#desktop-capture-dialog').showModal();
+  } catch { notice('No se pudieron listar las ventanas. Puedes cargar una captura PNG.'); }
+});
 $('#cancel-desktop-capture').addEventListener('click', () => $('#desktop-capture-dialog').close());
 $('#take-desktop-capture').addEventListener('click', async () => {
   const id = $('#desktop-source').value;
@@ -210,4 +222,21 @@ $('#capture-dialog').addEventListener('close', () => { if (previewUrl) URL.revok
 $('#use-ocr').addEventListener('click', () => { const text = $('#ocr-text').value.trim(); if (!text) return notice('Escribe o corrige el texto primero.'); $('#question').value = text; $('#capture-dialog').close(); $('#question').focus(); });
 $('#privacy').addEventListener('click', () => $('#privacy-dialog').showModal());
 $('#close-privacy').addEventListener('click', () => $('#privacy-dialog').close());
+if (window.folioDesktop?.minimize) {
+  $('#minimize-pet').hidden = false;
+  $('#minimize-pet').addEventListener('click', () => window.folioDesktop.minimize().catch(() => notice('No se pudo minimizar Folio.')));
+  window.folioDesktop.onAction(async action => {
+    try {
+      if (action === 'capture' && !busy && !document.querySelector('dialog[open]')) {
+        $('#capture').click();
+        return;
+      }
+      await window.folioDesktop.show();
+      if (document.querySelector('dialog[open]')) return;
+      if (action === 'capture') return notice('Espera a que termine la operación actual para capturar.');
+      const target = action === 'library' ? $('#upload') : $('#question');
+      target.scrollIntoView({ block: 'center', behavior: 'smooth' }); target.focus();
+    } catch { notice('No se pudo abrir la acción de la mascota.'); }
+  });
+}
 refresh().catch(error => notice(error.message));

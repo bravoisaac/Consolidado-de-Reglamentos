@@ -2,6 +2,8 @@ const { app, BrowserWindow, session, ipcMain, desktopCapturer, Menu, dialog, she
 const { fork, execFile } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
+const { createRegionCapture } = require('./region-capture.cjs');
+const { createPet } = require('./pet.cjs');
 
 const appRoot = path.resolve(__dirname, '..');
 const smoke = process.argv.includes('--smoke-test');
@@ -13,12 +15,12 @@ app.commandLine.appendSwitch('disable-background-networking');
 app.commandLine.appendSwitch('disable-component-update');
 app.commandLine.appendSwitch('disable-domain-reliability');
 app.commandLine.appendSwitch('disable-sync');
-let backend, mainWindow, origin, closing = false;
+let backend, mainWindow, origin, regionCapture, pet, closing = false;
 let allowedSources = new Map();
 const webPreferences = { contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, spellcheck: false };
 
 function trusted(event) {
-  if (!mainWindow || event.sender !== mainWindow.webContents || event.senderFrame?.url !== `${origin}/`) throw new Error('Solicitud no autorizada.');
+  if (!mainWindow || event.sender !== mainWindow.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || event.senderFrame?.url !== `${origin}/`) throw new Error('Solicitud no autorizada.');
 }
 function guardWindow(window) {
   window.webContents.on('will-navigate', (event, url) => { if (!isLocal(url)) event.preventDefault(); });
@@ -67,6 +69,19 @@ else {
     });
     mainWindow = new BrowserWindow({ width: 1380, height: 940, minWidth: 720, minHeight: 600, title: 'Folio · Reglamentos locales', backgroundColor: '#f7f8f5', icon: path.join(__dirname, 'icon.png'), show: false, webPreferences: { ...webPreferences, preload: path.join(__dirname, 'preload.cjs') } });
     guardWindow(mainWindow);
+    regionCapture = createRegionCapture(smoke ? require('./region-smoke.cjs').options() : undefined);
+    ipcMain.handle('folio:capture-region', async event => {
+      trusted(event); pet.suspend(true);
+      try { return await regionCapture.capture(mainWindow); }
+      finally { pet.suspend(false); }
+    });
+    ipcMain.handle('folio:minimize', event => { trusted(event); pet.minimize(); });
+    ipcMain.handle('folio:show', event => { trusted(event); pet.open(); });
+    ipcMain.handle('folio:busy', (event, value) => {
+      trusted(event);
+      if (typeof value !== 'boolean') throw new Error('Estado no válido.');
+      pet.setBusy(value);
+    });
     ipcMain.handle('folio:capture-sources', async event => {
       trusted(event);
       const sources = await desktopCapturer.getSources({ types: ['window', 'screen'], thumbnailSize: { width: 0, height: 0 }, fetchWindowIcons: false });
@@ -94,23 +109,27 @@ else {
       });
     };
     Menu.setApplicationMenu(Menu.buildFromTemplate([
-      { label: 'Folio', submenu: [ { label: 'Configurar bloqueo de Internet de la IA…', click: installFirewall }, { label: 'Abrir carpeta de datos', click: () => shell.openPath(path.join(localRoot, 'data')) }, { type: 'separator' }, { label: 'Salir', role: 'quit' } ] },
+      { label: 'Folio', submenu: [ { label: 'Minimizar a mascota', accelerator: 'CommandOrControl+Shift+M', click: () => pet.minimize() }, { type: 'separator' }, { label: 'Configurar bloqueo de Internet de la IA…', click: installFirewall }, { label: 'Abrir carpeta de datos', click: () => shell.openPath(path.join(localRoot, 'data')) }, { type: 'separator' }, { label: 'Salir', role: 'quit' } ] },
       { label: 'Editar', submenu: [ { role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' } ] },
       { label: 'Ver', submenu: [ { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { role: 'togglefullscreen' } ] }
     ]));
+    pet = createPet({ mainWindow, onAction: action => mainWindow.webContents.send('folio:action', action), onQuit: () => app.quit() });
+    await pet.ready;
     mainWindow.once('ready-to-show', () => mainWindow.show());
     mainWindow.on('closed', () => { mainWindow = undefined; app.quit(); });
     await mainWindow.loadURL(origin);
     // Explicit smoke mode uses only synthetic data and exits without touching user libraries.
     if (smoke) {
       const { runSmokeTest } = require('./smoke.cjs');
-      try { await runSmokeTest({ mainWindow, origin, localRoot, backend }); }
+      try { await runSmokeTest({ mainWindow, origin, localRoot, backend, regionCapture, pet }); }
       catch (error) { fs.writeFileSync(path.join(localRoot, 'smoke-result.json'), JSON.stringify({ ok: false, error: error.message })); }
       app.quit();
     }
   }).catch(error => { if (smoke) fs.writeFileSync(path.join(localRoot, 'smoke-result.json'), JSON.stringify({ ok: false, error: error.message })); else dialog.showErrorBox('No se pudo abrir Folio', error.message); app.quit(); });
   app.on('window-all-closed', () => app.quit());
   app.on('before-quit', event => {
+    pet?.dispose();
+    regionCapture?.dispose();
     if (!backend || closing) return;
     event.preventDefault(); closing = true;
     const child = backend;
